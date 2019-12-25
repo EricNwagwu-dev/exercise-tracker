@@ -19,6 +19,14 @@ const userSchema = new mongoose.Schema({
   username: { type: String, required: true }
 });
 
+const exerciseSchema = new mongoose.Schema({
+  userId: { type: String, required: true },
+  description: { type: String, required: true },
+  duration: { type: Number, required: true },
+  date: { type: Date, required: true }
+});
+
+const Exercise = mongoose.model("Exercise", exerciseSchema);
 const ExerciseUser = mongoose.model("ExerciseUser", userSchema);
 
 app.get("/", (req, res) => {
@@ -57,14 +65,59 @@ app.post("/api/exercise/new-user", (req, res) => {
 });
 
 app.get("/api/exercise/users", (req, res) => {
-  ExerciseUser.find(function(err, usersFound) {
+  ExerciseUser.find({}, function(err, usersFound) {
     if (err) {
       console.log("Error loading the database" + err);
       res.send("An error has occured.");
     }
-    res.send(usersFound);
-
+    if (usersFound !== null) {
+      res.send(usersFound);
+    }
   });
+});
+
+app.post("/api/exercise/add", (req, res) => {
+  if (req.body.userId === null || req.body.userId === "") {
+    res.send("UserId is a required field");
+  } else if (req.body.description === null || req.body.description === "") {
+    res.send("Description is a required field");
+  } else if (req.body.duration === null || req.body.duration === "") {
+    res.send("Duration is a required field");
+  } else {
+    if (req.body.date === null || req.body.date === "") {
+      var newExercise = new Exercise({
+        userId: req.body.userId,
+        description: req.body.description,
+        duration: req.body.duration,
+        date: new Date()
+      });
+    } else {
+      var newExercise = new Exercise({
+        userId: req.body.userId,
+        description: req.body.description,
+        duration: req.body.duration,
+        date: new Date(req.body.date)
+      });
+    }
+    newExercise.save(function(err, exerciseSaved) {
+      if (err) {
+        console.log("Failed to create exercise object: " + err);
+        res.send("Error creating exercise");
+      } else {
+        ExerciseUser.findOne({ _id: exerciseSaved.userId }, function(
+          err,
+          userFound
+        ) {
+          if (err) {
+            console.log("Error finding user: " + err);
+            res.send("Error creating exercise");
+          } else {
+            res.json({ username: userFound.username, _id: userFound._id });
+          }
+        });
+      }
+    });
+  }
 });
 
 // Not found middleware
