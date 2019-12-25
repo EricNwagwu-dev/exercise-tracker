@@ -56,6 +56,18 @@ app.post("/api/exercise/new-user", (req, res) => {
   }
 });
 
+app.get("/api/exercise/users", (req, res) => {
+  ExerciseUser.find(function(err, usersFound) {
+    if (err) {
+      console.log("Error loading the database" + err);
+      res.send("An error has occured.");
+    }
+    console.log(usersFound)
+    res.send(usersFound);
+
+  });
+});
+
 // Not found middleware
 app.use((req, res, next) => {
   return next({ status: 404, message: "not found" });
