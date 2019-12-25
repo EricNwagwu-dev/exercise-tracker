@@ -26,33 +26,34 @@ app.get("/", (req, res) => {
 });
 
 app.post("/api/exercise/new-user", (req, res) => {
-  if (req.body.username === "") {
-    res.send("Path `username` is required");
+  if (req.body.username === null || req.body.username === "") {
+    res.send("Path `username` is required" + req.body.username);
+  } else {
+    ExerciseUser.findOne({ username: req.body.username }, function(
+      err,
+      userFound
+    ) {
+      if (err) {
+        console.log("Error loading the database" + err);
+        res.send("An error has occured.");
+      }
+      if (userFound !== null) {
+        res.send("Username already taken");
+      } else {
+        var newUser = new ExerciseUser({
+          username: req.body.username
+        });
+        newUser.save(function(err, userSaved) {
+          if (err) {
+            console.log("Error loading the database" + err);
+            res.send("An error has occured.");
+          } else {
+            res.json({ username: userSaved.username, _id: userSaved._id });
+          }
+        });
+      }
+    });
   }
-  ExerciseUser.findOne({ username: req.body.username }, function(
-    err,
-    userFound
-  ) {
-    if (err) {
-      console.log("Error loading the database" + err);
-      res.send("An error has occured.");
-    }
-    if (userFound !== null) {
-      res.json({ username: userFound.username, _id: userFound._id });
-    } else {
-      var newUser = new ExerciseUser({
-        username: req.body.username
-      });
-      newUser.save(function(err, userSaved) {
-        if (err) {
-          console.log("Error loading the database" + err);
-          res.send("An error has occured.");
-        } else {
-          res.json({ username: userSaved.username, _id: userSaved._id });
-        }
-      });
-    }
-  });
 });
 
 // Not found middleware
