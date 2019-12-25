@@ -62,7 +62,6 @@ app.get("/api/exercise/users", (req, res) => {
       console.log("Error loading the database" + err);
       res.send("An error has occured.");
     }
-    console.log(usersFound)
     res.send(usersFound);
 
   });
